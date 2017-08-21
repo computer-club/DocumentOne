@@ -13,7 +13,16 @@ public:
  enum class ColumnType
  {
   None,
-  String
+  String,
+  Long
+ };
+
+ enum class IndexType
+ {
+  None,
+  Primary,
+  Unique,
+  Multiple
  };
 
 // private data
@@ -21,6 +30,7 @@ private:
  String columnName;
  String description;
  ColumnType columnType;
+ IndexType indexType;
 
 // public functions
 public:
@@ -41,6 +51,11 @@ public:
  { This.columnType=value; }
  const ColumnType getColumnType() const
  { return(This.columnType); }
+
+ void setIndexType(IndexType value)
+ { This.indexType=value; }
+ const IndexType getIndexType() const
+ { return(This.indexType); }
 };
 
 class StringColumn: public DBColumn
@@ -58,6 +73,25 @@ public:
  { This.maxLength=length; }
  uint getMaxLength()
  { return(This.maxLength); }
+};
+
+class SerialColumn: public DBColumn
+{
+// private data
+private:
+ BoolTrue autoIncrement;
+ uint64_t startingValue=100;
+
+// public functions
+public:
+ SerialColumn()
+ { This.setColumnType(ColumnType::Long);
+   This.setIndexType(IndexType::Primary); }
+
+ void setAutoIncrement(bool autoIncrement)
+ { This.autoIncrement=autoIncrement; }
+ const bool getIncrement() const
+ { return(This.autoIncrement); }
 };
 
 #endif
