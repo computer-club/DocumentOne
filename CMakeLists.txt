@@ -19,3 +19,8 @@ execute_process(COMMAND mysql_config --libs
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MYSQL_CFLAGS} ${MYSQL_LIBS}")
 set(SOURCES cpp/SQLTest.cpp cpp/Dbms.cpp cpp/SysException.cpp)
 add_executable(SQLTest ${SOURCES})
+
+# Table Test
+project(TableTest)
+set(SOURCES cpp/TableTest.cpp cpp/UserTables.cpp)
+add_executable(TableTest ${SOURCES})
