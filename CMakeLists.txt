@@ -16,9 +16,11 @@ execute_process(COMMAND mysql_config --cflags
 execute_process(COMMAND mysql_config --libs
  OUTPUT_VARIABLE MYSQL_LIBS
  OUTPUT_STRIP_TRAILING_WHITESPACE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MYSQL_CFLAGS} ${MYSQL_LIBS}")
+# # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MYSQL_CFLAGS} ${MYSQL_LIBS}")
 set(SOURCES cpp/SQLTest.cpp cpp/Dbms.cpp cpp/SysException.cpp)
 add_executable(SQLTest ${SOURCES})
+set_target_properties(SQLTest PROPERTIES COMPILE_FLAGS "${MYSQL_CFLAGS}")
+set_target_properties(SQLTest PROPERTIES LINK_FLAGS "${MYSQL_LIBS}")
 
 # Table Test
 project(TableTest)
