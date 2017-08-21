@@ -2,7 +2,7 @@
 #define H_SYSTEM
 
 // INCLUDES
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include <memory>
 
@@ -12,7 +12,46 @@
 
 // TYPEDEFS
 typedef std::string String;
-typedef uint32_t uint;
-typedef uint8_t byte;
+typedef std::uint64_t uint64_t;
+typedef std::uint32_t uint;
+typedef std::uint8_t byte;
+
+// TYPES
+
+class BoolFalse
+{
+// private data
+private:
+ bool value;
+
+// public functions
+public:
+ BoolFalse()
+ { This.value=false; }
+
+ BoolFalse& operator=(bool right)
+ { This.value=right; return(This); }
+
+ operator bool() const
+ { return(This.value); }
+};
+
+class BoolTrue
+{
+// private data
+private:
+ bool value;
+
+// public functions
+public:
+ BoolTrue()
+ { This.value=true; }
+
+ BoolTrue& operator=(bool right)
+ { This.value=right; return(This); }
+
+ operator bool() const
+ { return(This.value); }
+};
 
 #endif
