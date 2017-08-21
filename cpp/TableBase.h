@@ -9,8 +9,8 @@
 
 class DBTable
 {
-// private types
-private:
+// public types
+public:
  typedef std::list<DBColumn> DBColumnList;
 
 // private data
