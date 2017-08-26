@@ -24,7 +24,7 @@ set_target_properties(SQLTest PROPERTIES LINK_FLAGS "${MYSQL_LIBS}")
 
 # Table Test
 project(TableTest)
-set(SOURCES cpp/TableTest.cpp cpp/UserTables.cpp)
+set(SOURCES cpp/TableTest.cpp cpp/User.cpp)
 add_executable(TableTest ${SOURCES})
 
 # SQL Table Test
@@ -36,7 +36,7 @@ execute_process(COMMAND mysql_config --libs
  OUTPUT_VARIABLE MYSQL_LIBS
  OUTPUT_STRIP_TRAILING_WHITESPACE)
 # # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MYSQL_CFLAGS} ${MYSQL_LIBS}")
-set(SOURCES cpp/DatabaseUtility.cpp cpp/Dbms.cpp cpp/UserTables.cpp cpp/SysException.cpp)
+set(SOURCES cpp/DatabaseUtility.cpp cpp/Dbms.cpp cpp/User.cpp cpp/SysException.cpp)
 add_executable(SQLTableTest ${SOURCES})
 set_target_properties(SQLTableTest PROPERTIES COMPILE_FLAGS "${MYSQL_CFLAGS}")
 set_target_properties(SQLTableTest PROPERTIES LINK_FLAGS "${MYSQL_LIBS}")

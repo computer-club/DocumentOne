@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include "Sys.h"
-#include "UserTables.h"
+#include "User.h"
 
 int
 main()

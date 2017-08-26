@@ -1,7 +1,6 @@
 // user table code
 
 #include "Sys.h"
-#include "UserTables.h"
 #include "User.h"
 
 const String
