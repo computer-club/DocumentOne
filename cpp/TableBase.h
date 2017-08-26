@@ -11,7 +11,7 @@ class DBTable
 {
 // public types
 public:
- typedef std::list<DBColumn> DBColumnList;
+ typedef std::list<AutoPtr<const DBColumn>> DBColumnList;
 
 // private data
 private:
@@ -29,8 +29,8 @@ public:
  { This.description.assign(description); }
  const String& getDescription() const
  { return(This.description); }
- void addColumn(const DBColumn& column)
- { columnList.push_back(column); }
+ void addColumn(const DBColumn* column)
+ { columnList.emplace_back(AutoPtr<const DBColumn>(column)); }
 
  DBColumnList::iterator getColumnListBegin()
  { return(This.columnList.begin()); }

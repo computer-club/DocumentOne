@@ -13,7 +13,8 @@ main()
  DBTable::DBColumnList::iterator begin=userTable.getColumnListBegin();
  DBTable::DBColumnList::iterator end=userTable.getColumnListEnd();
  while (begin!=end) {
-  printf("Column Name: %s\n",begin->getColumnName().c_str());
+  const DBColumn& column=**begin;
+  printf("Column Name: %s\n",column.getColumnName().c_str());
   ++begin;
  }
 }

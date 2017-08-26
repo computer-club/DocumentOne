@@ -18,23 +18,26 @@ UserTable::UserTable()
  This.setTableName(This.getName());
  This.setDescription("User");
  {
-  SerialColumn column;
+  SerialColumn* columnPtr=new SerialColumn();
+  SerialColumn& column=*columnPtr;
   column.setColumnName(This.getSerialColumnName());
   column.setDescription("Serial");
-  This.addColumn(column);
+  This.addColumn(columnPtr);
  }
  {
-  StringColumn column;
+  StringColumn* columnPtr=new StringColumn();
+  StringColumn& column=*columnPtr;
   column.setColumnName(This.getUsernameColumnName());
   column.setDescription("Username");
   column.setMaxLength(User::MaxUsernameLength);
-  This.addColumn(column);
+  This.addColumn(columnPtr);
  }
  {
-  StringColumn column;
+  StringColumn* columnPtr=new StringColumn();
+  StringColumn& column=*columnPtr;
   column.setColumnName(This.getPasswordColumnName());
   column.setDescription("Password");
   column.setMaxLength(User::MaxPasswordLength);
-  This.addColumn(column);
+  This.addColumn(columnPtr);
  }
 }
