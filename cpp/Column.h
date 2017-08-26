@@ -35,16 +35,17 @@ private:
 // public functions
 public:
  DBColumn()
- { This.columnType=ColumnType::None; }
+ { This.columnType=ColumnType::None;
+   This.indexType=IndexType::None; }
 
  void setColumnName(String value)
  { This.columnName=value; }
- String getColumnName()
+ const String getColumnName() const
  { return(This.columnName); }
 
  void setDescription(String value)
  { This.description=value; }
- String getDescription()
+ const String getDescription() const
  { return(This.description); }
 
  void setColumnType(ColumnType value)
@@ -67,11 +68,12 @@ private:
 // public functions
 public:
  StringColumn()
- { This.setColumnType(ColumnType::String); }
+ { This.setColumnType(ColumnType::String);
+   This.setIndexType(IndexType::None); }
 
  void setMaxLength(uint length)
  { This.maxLength=length; }
- uint getMaxLength()
+ const uint getMaxLength() const
  { return(This.maxLength); }
 };
 
@@ -80,7 +82,7 @@ class SerialColumn: public DBColumn
 // private data
 private:
  BoolTrue autoIncrement;
- uint64_t startingValue=100;
+ BoolTrue notNull;
 
 // public functions
 public:
@@ -88,10 +90,14 @@ public:
  { This.setColumnType(ColumnType::Long);
    This.setIndexType(IndexType::Primary); }
 
- void setAutoIncrement(bool autoIncrement)
- { This.autoIncrement=autoIncrement; }
- const bool getIncrement() const
+ void setAutoIncrement(bool value)
+ { This.autoIncrement=value; }
+ const bool getAutoIncrement() const
  { return(This.autoIncrement); }
+ void setNotNull(bool value)
+ { This.notNull=value; }
+ const bool getNotNull() const
+ { return(This.notNull); }
 };
 
 #endif
