@@ -58,6 +58,7 @@ DBStatement::executeQuery(DBResultSet& rset)
 DBResultSet::DBResultSet(DBStatement& stmt)
 {
  This.stmtPtr=&stmt;
+ This.rsetPtr=NULL;
 }
 
 DBResultSet::~DBResultSet()
@@ -70,8 +71,11 @@ DBResultSet::storeResult(MYSQL* connection)
 {
  This.rsetPtr=mysql_store_result(connection);
  if (This.rsetPtr==NULL) {
-  String exception("Failed to retrieve set");
-  throw DBException(exception);
+  String mysqlError(mysql_error(connection));
+  if (mysqlError.length()>0) {
+   mysql_close(connection);
+   throw DBException(mysqlError);
+  }
  }
 }
 
@@ -79,8 +83,7 @@ bool
 DBResultSet::fetch()
 {
  if (This.rsetPtr==NULL) {
-  String exception("Failed to fetch row from null result set");
-  throw DBException(exception);
+  return false;
  }
  This.currRow=mysql_fetch_row(This.rsetPtr);
  return (This.currRow!=NULL);
