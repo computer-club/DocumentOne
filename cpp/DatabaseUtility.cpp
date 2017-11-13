@@ -26,8 +26,6 @@ addTable(DBTable table,DBConnection& connection)
     tableExists=true;
   }
  }
- DBTable::DBColumnList::iterator begin=table.getColumnListBegin();
- DBTable::DBColumnList::iterator end=table.getColumnListEnd();
  String buildTableString;
  if (!tableExists) {
   buildTableString.assign("CREATE TABLE ");
@@ -37,6 +35,8 @@ addTable(DBTable table,DBConnection& connection)
   buildTableString.append(" (");
  }
  bool first=true;
+ DBTable::DBColumnList::iterator begin=table.getColumnListBegin();
+ DBTable::DBColumnList::iterator end=table.getColumnListEnd();
  while (begin!=end) {
   const DBColumn& column=**begin;
   String columnName=column.getColumnName();
@@ -70,15 +70,17 @@ addTable(DBTable table,DBConnection& connection)
   } else {
    DBStatement stmt(connection);
    DBResultSet rset(stmt);
-   String sqlStatement("SHOW TABLES FROM ");
+   String sqlStatement("SHOW COLUMNS FROM ");
    sqlStatement.append(databaseName);
+   sqlStatement.append(".");
+   sqlStatement.append(tableName);
    stmt.setSQL(sqlStatement);
    stmt.executeQuery(rset);
    bool found=false;
    while (!found && rset.fetch()) {
-    String rowTableName;
-    rset.get(0,rowTableName);
-    if (rowTableName==tableName)
+    String rowColumnName;
+    rset.get(0,rowColumnName);
+    if (rowColumnName==columnName)
      found=true;
    }
    if (!found) {
@@ -87,6 +89,8 @@ addTable(DBTable table,DBConnection& connection)
     sqlStatement.append(".");
     sqlStatement.append(tableName);
     sqlStatement.append(" ADD ");
+    sqlStatement.append(columnName);
+    sqlStatement.append(" ");
     DBColumn::ColumnType columnType=column.getColumnType();
     String columnTypeString;
     if (columnType==DBColumn::ColumnType::String) {
