@@ -46,6 +46,8 @@ DBConnection::RawConnection::setValue(MYSQL* ptr)
 void
 DBStatement::executeQuery(DBResultSet& rset)
 {
+ if (DBLOGMODE==1)
+  printf("%s\n",This.getSQL().c_str());
  MYSQL* connection=This.connection->connectionPtr.getValue();
  if (mysql_query(connection, This.getSQL().c_str())) {
   String mysqlError(mysql_error(connection));

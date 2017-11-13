@@ -9,6 +9,8 @@
 #include "Sys.h"
 #include "SysException.h"
 
+#define DBLOGMODE 0
+
 class DBStatement;
 class DBResultSet;
 
