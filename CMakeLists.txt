@@ -40,3 +40,8 @@ set(SOURCES cpp/DatabaseUtility.cpp cpp/Dbms.cpp cpp/User.cpp cpp/SysException.c
 add_executable(SQLTableTest ${SOURCES})
 set_target_properties(SQLTableTest PROPERTIES COMPILE_FLAGS "${MYSQL_CFLAGS}")
 set_target_properties(SQLTableTest PROPERTIES LINK_FLAGS "${MYSQL_LIBS}")
+
+# Cipher Test
+project(CipherTest)
+set(SOURCES cpp/CipherTest.cpp cpp/Cryptography.cpp)
+add_executable(CipherTest ${SOURCES})
