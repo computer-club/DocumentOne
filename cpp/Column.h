@@ -14,7 +14,9 @@ public:
  {
   None,
   String,
-  Long
+  Long,
+  Date,
+  Time
  };
 
  enum class IndexType
@@ -81,19 +83,68 @@ class SerialColumn: public DBColumn
 {
 // private data
 private:
- BoolTrue autoIncrement;
- BoolTrue notNull;
+ BoolFalse autoIncrement;
+ BoolFalse notNull;
+ BoolFalse foreignKeyReference;
+ String foreignKeyReferenceTableName;
+ String foreignKeyReferenceColumnName;
 
 // public functions
 public:
  SerialColumn()
  { This.setColumnType(ColumnType::Long);
-   This.setIndexType(IndexType::Primary); }
+   This.setIndexType(IndexType::None); }
 
  void setAutoIncrement(bool value)
  { This.autoIncrement=value; }
  const bool getAutoIncrement() const
  { return(This.autoIncrement); }
+ void setNotNull(bool value)
+ { This.notNull=value; }
+ const bool getNotNull() const
+ { return(This.notNull); }
+ void setForeignKeyReference();
+ void setForeignKeyReference(
+  const String& tableName,
+  const String& columnName);
+ const bool getForeignKeyReference() const
+ { return(This.foreignKeyReference); }
+ const String getForeignKeyReferenceTableName() const
+ { return(This.foreignKeyReferenceTableName); }
+ const String getForeignKeyReferenceColumnName() const
+ { return(This.foreignKeyReferenceColumnName); }
+};
+
+class DateColumn: public DBColumn
+{
+// private data
+private:
+ BoolFalse notNull;
+
+// public functions
+public:
+ DateColumn()
+ { This.setColumnType(ColumnType::Date);
+   This.setIndexType(IndexType::None); }
+
+ void setNotNull(bool value)
+ { This.notNull=value; }
+ const bool getNotNull() const
+ { return(This.notNull); }
+};
+
+class TimeColumn: public DBColumn
+{
+// private data
+private:
+ BoolFalse notNull;
+
+// public functions
+public:
+ TimeColumn()
+ { This.setColumnType(ColumnType::Time);
+   This.setIndexType(IndexType::None); }
+
  void setNotNull(bool value)
  { This.notNull=value; }
  const bool getNotNull() const

@@ -11,8 +11,8 @@ class User
 {
 // public types 
 public:
- enum { MaxUsernameLength=40 };
- enum { MaxPasswordLength=40 };
+ enum {MaxUsernameLength=40};
+ enum {MaxPasswordLength=40};
 };
 
 class UserTable: public DBTable

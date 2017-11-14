@@ -7,6 +7,62 @@
 
 const String databaseName("CORE");
 
+String getColumnDefinitionString(
+ const DBColumn& column,bool tableExists)
+{
+ String text(column.getColumnName());
+ DBColumn::ColumnType columnType=column.getColumnType();
+ if (columnType==DBColumn::ColumnType::String) {
+  text.append(" VARCHAR(");
+  uint maxLength=((StringColumn*)&column)->getMaxLength();
+  text.append(std::to_string(maxLength));
+  text.append(")");
+ }
+ else if (columnType==DBColumn::ColumnType::Long) {
+  SerialColumn& serialColumn=*((SerialColumn*)&column);
+  bool autoIncrement=serialColumn.getAutoIncrement();
+  bool notNull=serialColumn.getNotNull();
+  bool foreignKeyReference=serialColumn.getForeignKeyReference();
+  text.append(" BIGINT");
+  if (notNull)
+   text.append(" NOT NULL");
+  if (autoIncrement)
+   text.append(" AUTO_INCREMENT");
+  if (foreignKeyReference && !tableExists) {
+   String foreignKeyReferenceTableName(
+    serialColumn.getForeignKeyReferenceTableName());
+   String foreignKeyReferenceColumnName(
+    serialColumn.getForeignKeyReferenceColumnName());
+   text.append(", FOREIGN KEY (");
+   text.append(column.getColumnName());
+   text.append(") REFERENCES ");
+   text.append(databaseName);
+   text.append(".");
+   text.append(foreignKeyReferenceTableName);
+   text.append("(");
+   text.append(foreignKeyReferenceColumnName);
+   text.append(")");
+  }
+  else if (column.getIndexType()==DBColumn::IndexType::Primary)
+   text.append(" PRIMARY KEY");
+ }
+ else if (columnType==DBColumn::ColumnType::Date) {
+  DateColumn& dateColumn=*((DateColumn*)&column);
+  text.append(" DATE");
+  bool notNull=dateColumn.getNotNull();
+  if (notNull)
+   text.append(" NOT NULL");
+ }
+ else if (columnType==DBColumn::ColumnType::Time) {
+  TimeColumn& timeColumn=*((TimeColumn*)&column);
+  text.append(" TIME");
+  bool notNull=timeColumn.getNotNull();
+  if (notNull)
+   text.append(" NOT NULL");
+ }
+ return(text);
+}
+
 void
 addTable(DBTable table,DBConnection& connection)
 {
@@ -28,6 +84,7 @@ addTable(DBTable table,DBConnection& connection)
  }
  String buildTableString;
  if (!tableExists) {
+  printf("Creating Table %s\n",tableName.c_str());
   buildTableString.assign("CREATE TABLE ");
   buildTableString.append(databaseName);
   buildTableString.append(".");
@@ -35,38 +92,19 @@ addTable(DBTable table,DBConnection& connection)
   buildTableString.append(" (");
  }
  bool first=true;
- DBTable::DBColumnList::iterator begin=table.getColumnListBegin();
+ DBTable::DBColumnList::iterator next=table.getColumnListBegin();
  DBTable::DBColumnList::iterator end=table.getColumnListEnd();
- while (begin!=end) {
-  const DBColumn& column=**begin;
+ while (next!=end) {
+  const DBColumn& column=**next;
   String columnName=column.getColumnName();
   if (!tableExists) {
+   printf(" - Column: %s\n",columnName.c_str());
    if (first)
     first=false;
    else
     buildTableString.append(", ");
-   buildTableString.append(columnName);
-   buildTableString.append(" ");
-   DBColumn::ColumnType columnType=column.getColumnType();
-   String columnTypeString;
-   if (columnType==DBColumn::ColumnType::String) {
-    columnTypeString.assign("VARCHAR(");
-    uint maxLength=((StringColumn*)&column)->getMaxLength();
-    columnTypeString.append(std::to_string(maxLength));
-    columnTypeString.append(")");
-   }
-   else if (columnType==DBColumn::ColumnType::Long) {
-    columnTypeString.assign("BIGINT");
-    bool autoIncrement=((SerialColumn*)&column)->getAutoIncrement();
-    bool notNull=((SerialColumn*)&column)->getNotNull();
-    if (notNull)
-     columnTypeString.append(" NOT NULL");
-    if (autoIncrement)
-     columnTypeString.append(" AUTO_INCREMENT");
-   }
-   if (column.getIndexType()==DBColumn::IndexType::Primary)
-    columnTypeString.append(" PRIMARY KEY");
-   buildTableString.append(columnTypeString);
+   buildTableString.append(getColumnDefinitionString(
+    column,tableExists));
   } else {
    DBStatement stmt(connection);
    DBResultSet rset(stmt);
@@ -84,40 +122,48 @@ addTable(DBTable table,DBConnection& connection)
      found=true;
    }
    if (!found) {
+    printf(" - Adding Column %s.%s\n",
+     tableName.c_str(),columnName.c_str());
     String sqlStatement("ALTER TABLE ");
     sqlStatement.append(databaseName);
     sqlStatement.append(".");
     sqlStatement.append(tableName);
     sqlStatement.append(" ADD ");
-    sqlStatement.append(columnName);
-    sqlStatement.append(" ");
-    DBColumn::ColumnType columnType=column.getColumnType();
-    String columnTypeString;
-    if (columnType==DBColumn::ColumnType::String) {
-     columnTypeString.assign("VARCHAR(");
-     uint maxLength=((StringColumn*)&column)->getMaxLength();
-     columnTypeString.append(std::to_string(maxLength));
-     columnTypeString.append(")");
-    }
-    else if (columnType==DBColumn::ColumnType::Long) {
-     columnTypeString.assign("BIGINT");
-     bool autoIncrement=((SerialColumn*)&column)->getAutoIncrement();
-     bool notNull=((SerialColumn*)&column)->getNotNull();
-     if (notNull)
-      columnTypeString.append(" NOT NULL");
-     if (autoIncrement)
-      columnTypeString.append(" AUTO_INCREMENT");
-    }
-    if (column.getIndexType()==DBColumn::IndexType::Primary)
-     columnTypeString.append(" PRIMARY KEY");
-    sqlStatement.append(columnTypeString);
+    sqlStatement.append(getColumnDefinitionString(
+     column,tableExists));
     DBStatement stmt(connection);
     DBResultSet rset(stmt);
     stmt.setSQL(sqlStatement);
     stmt.executeQuery(rset);
+    if (column.getColumnType()==DBColumn::ColumnType::Long)
+    {
+     SerialColumn& serialColumn=*((SerialColumn*)&column);
+     if (serialColumn.getForeignKeyReference())
+     {
+      String foreignKeyReferenceTableName(
+       serialColumn.getForeignKeyReferenceTableName());
+      String foreignKeyReferenceColumnName(
+       serialColumn.getForeignKeyReferenceColumnName());
+      sqlStatement.assign("ALTER TABLE");
+      sqlStatement.append(databaseName);
+      sqlStatement.append(".");
+      sqlStatement.append(tableName);
+      sqlStatement.append(" ADD FOREIGN KEY (");
+      sqlStatement.append(columnName);
+      sqlStatement.append(") REFERENCES ");
+      sqlStatement.append(databaseName);
+      sqlStatement.append(".");
+      sqlStatement.append(foreignKeyReferenceTableName);
+      sqlStatement.append("(");
+      sqlStatement.append(foreignKeyReferenceColumnName);
+      sqlStatement.append(")");
+      stmt.setSQL(sqlStatement);
+      stmt.executeQuery(rset);
+     }
+    }
    }
   }
-  ++begin;
+  ++next;
  }
  if (!tableExists) {
   buildTableString.append(")");
@@ -149,6 +195,7 @@ main()
  }
  if (!databaseExists)
  {
+  printf("Creating database %s\n",databaseName.c_str());
   DBStatement stmt(connection);
   DBResultSet rset(stmt);
   String statement("CREATE DATABASE ");

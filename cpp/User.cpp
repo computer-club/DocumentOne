@@ -21,6 +21,9 @@ UserTable::UserTable()
   SerialColumn& column=*columnPtr;
   column.setColumnName(This.getSerialColumnName());
   column.setDescription("Serial");
+  column.setIndexType(SerialColumn::IndexType::Primary);
+  column.setAutoIncrement(true);
+  column.setNotNull(true);
   This.addColumn(columnPtr);
  }
  {
