@@ -3,7 +3,6 @@
 #ifndef H_SERIAL
 #define H_SERIAL
 
-#include <string>
 #include "Sys.h"
 
 class Serial
@@ -11,15 +10,21 @@ class Serial
 // private data
 private:
  uint64_t value;
+ BoolTrue isNullValue;
 
 // public functions
 public:
  Serial()
  { This.value=0; }
  Serial(uint value)
- { This.value=value; }
+ { This.value=value;
+   This.isNullValue=false; }
+ Serial(String& right)
+ { This.value=std::stoi(right);
+   This.isNullValue=false; }
  Serial(const Serial& right)
- { This.value=right.value; }
+ { This.value=right.value;
+   This.isNullValue=right.isNullValue; }
 
  // set from string
  Serial& operator=(const String& right)
@@ -40,15 +45,26 @@ public:
  { return(This.value<=right.value); }
 
  void setNull()
- { This.value=0; }
+ { This.value=0;
+   This.isNullValue=true; }
  bool isNull()
- { return(This.value==0); }
+ { return(This.isNullValue); }
 
  // convert to string
  const String toString() const
- { char cstr[10]; snprintf((char *)This.value,10,"%ld"); return String(cstr); }
+ { String result;
+   if (!This.isNullValue)
+   {
+    char cstr[10];
+    size_t len=snprintf(cstr,10,"%ld",This.value);
+    return result.assign(cstr,len);
+   }
+   else
+    result.assign("NULL");
+   return(result); }
  bool fromString(const String& right)
- { This.value=std::stoi(right); }
+ { This.value=std::stoi(right);
+   This.isNullValue=false; }
 };
 
 #endif

@@ -3,7 +3,7 @@
 
 // INCLUDES
 #include <cstdint>
-#include <string>
+#include <cstring>
 #include <memory>
 
 // DEFINES

@@ -13,6 +13,7 @@ class User
 public:
  enum {MaxUsernameLength=40};
  enum {MaxPasswordLength=40};
+ enum {MaxTokenLength=20};
 };
 
 class UserTable: public DBTable
@@ -23,6 +24,9 @@ private:
  static const String serialColumnName;
  static const String usernameColumnName;
  static const String passwordColumnName;
+ static const String tokenColumnName;
+ static const String tokenExpirationDateColumnName;
+ static const String tokenExpirationTimeColumnName;
 
 // public functions
 public:
@@ -36,6 +40,12 @@ public:
  { return(UserTable::usernameColumnName); }
  static const String getPasswordColumnName()
  { return(UserTable::passwordColumnName); }
+ static const String getTokenColumnName()
+ { return(UserTable::tokenColumnName); }
+ static const String getTokenExpirationDateColumnName()
+ { return(UserTable::tokenExpirationDateColumnName); }
+ static const String getTokenExpirationTimeColumnName()
+ { return(UserTable::tokenExpirationTimeColumnName); }
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include <my_global.h>
 #include "Sys.h"
 #include "SysException.h"
+#include "Serial.h"
 
 #define DBLOGMODE 1
 
@@ -93,7 +94,10 @@ public:
  const DBIdentifier& getDatabaseName() const
  { return(This.databaseName); }
 
- bool connect();
+ void connect();
+ void startTransaction();
+ void commit();
+ void rollback();
 };
 
 class DBStatement
@@ -122,6 +126,10 @@ public:
  { This.stmt.assign("SELECT "); }
  void addSelect()
  { This.stmt.append("SELECT "); }
+ void setInsertInto()
+ { This.stmt.assign("INSERT INTO "); }
+ void setUpdate()
+ { This.stmt.assign("UPDATE "); }
 
  void addComma()
  { This.stmt.append(","); }
@@ -130,6 +138,10 @@ public:
  void addRightParenthesis()
  { This.stmt.append(")"); }
 
+ void addValues()
+ { This.stmt.append(" VALUES "); }
+ void addSet()
+ { This.stmt.append(" SET "); }
  void addFrom()
  { This.stmt.append(" FROM "); }
  void addJoin()
@@ -162,8 +174,11 @@ public:
   const DBIdentifier& tableName,
   const DBIdentifier& columnName);
 
- void addLiteral(const String& value)
- { This.stmt.append("'"); This.stmt.append(value); This.stmt.append("'"); }
+ void addLiteral(const String& value);
+ void addLiteral(const Serial& value);
+
+ void addLastInsertId()
+ { This.stmt.append("LAST_INSERT_ID()"); }
 
  const Statement& getSQL() const
  { return(This.stmt); }
@@ -176,6 +191,7 @@ public:
 class DBResultSet
 {
  friend class DBStatement;
+
 // private types
 private:
  typedef String DBIdentifier;
@@ -185,6 +201,7 @@ private:
  MYSQL_RES* rsetPtr;
  MYSQL_ROW currRow;
  DBStatement* stmtPtr;
+ size_t columnCount;
  
 // public functions
 public:
@@ -194,9 +211,11 @@ public:
  bool fetch();
 
  void get(size_t pos,String& value);
+ void get(size_t post,Serial& value);
 
 // private functions
  void storeResult(MYSQL* connection);
+ void storeResult(MYSQL_STMT* statement);
 };
 
 class DBException: public SysException

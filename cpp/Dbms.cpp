@@ -15,10 +15,9 @@ DBConnection::DBConnection()
  This.clientFlag=0;
 }
 
-bool
+void
 DBConnection::connect()
 {
- bool success=false;
  MYSQL* mysqlRawPtr=mysql_init(NULL);
  if (mysql_real_connect(mysqlRawPtr,This.host.c_str(),
       This.username.c_str(),This.password.c_str(),
@@ -29,9 +28,50 @@ DBConnection::connect()
   mysql_close(mysqlRawPtr);
   throw DBException(mysqlError);
  }
- success=true;
+ if (mysql_query(mysqlRawPtr,"USE CORE")) {
+  String mysqlError(mysql_error(mysqlRawPtr));
+  mysql_close(mysqlRawPtr);
+  throw DBException(mysqlError);
+ }
+ if (mysql_query(mysqlRawPtr,"SET AUTOCOMMIT=0")) {
+  String mysqlError(mysql_error(mysqlRawPtr));
+  mysql_close(mysqlRawPtr);
+  throw DBException(mysqlError);
+ }
  This.connectionPtr.setValue(mysqlRawPtr);
- return(success);
+}
+
+void
+DBConnection::startTransaction()
+{
+ MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
+ if (mysql_query(mysqlRawPtr,"START TRANSACTION")) {
+  String mysqlError(mysql_error(mysqlRawPtr));
+  mysql_close(mysqlRawPtr);
+  throw DBException(mysqlError);
+ }
+}
+
+void
+DBConnection::commit()
+{
+ MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
+ if (mysql_query(mysqlRawPtr,"COMMIT")) {
+  String mysqlError(mysql_error(mysqlRawPtr));
+  mysql_close(mysqlRawPtr);
+  throw DBException(mysqlError);
+ }
+}
+
+void
+DBConnection::rollback()
+{
+ MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
+ if (mysql_query(mysqlRawPtr,"ROLLBACK")) {
+  String mysqlError(mysql_error(mysqlRawPtr));
+  mysql_close(mysqlRawPtr);
+  throw DBException(mysqlError);
+ }
 }
 
 bool
@@ -44,12 +84,46 @@ DBConnection::RawConnection::setValue(MYSQL* ptr)
 }
 
 void
+DBStatement::addIdentifier(
+ const DBIdentifier& tableName,
+ const DBIdentifier& columnName)
+{
+ This.stmt.append(tableName);
+ This.stmt.append(".");
+ This.stmt.append(columnName);
+}
+
+void
+DBStatement::addLiteral(const String& value)
+{
+ char query[1024];
+ MYSQL* mysqlRawPtr=This.connection->connectionPtr.getValue();
+ size_t len=mysql_real_escape_string(mysqlRawPtr,
+  query,value.c_str(),value.size());
+ This.stmt.append("'");
+ This.stmt.append(query,len);
+ This.stmt.append("'");
+}
+
+void
+DBStatement::addLiteral(const Serial& value)
+{
+ char query[1024];
+ String valueText(value.toString());
+ MYSQL* mysqlRawPtr=This.connection->connectionPtr.getValue();
+ size_t len=mysql_real_escape_string(mysqlRawPtr,
+  query,valueText.c_str(),valueText.size());
+ This.stmt.append(query,len);
+}
+
+void
 DBStatement::executeQuery(DBResultSet& rset)
 {
  if (DBLOGMODE==1)
   printf("%s\n",This.getSQL().c_str());
  MYSQL* connection=This.connection->connectionPtr.getValue();
- if (mysql_query(connection, This.getSQL().c_str())) {
+ if (mysql_query(connection,This.getSQL().c_str()))
+ {
   String mysqlError(mysql_error(connection));
   mysql_close(connection);
   throw DBException(mysqlError);
@@ -61,6 +135,7 @@ DBResultSet::DBResultSet(DBStatement& stmt)
 {
  This.stmtPtr=&stmt;
  This.rsetPtr=NULL;
+ This.columnCount=0;
 }
 
 DBResultSet::~DBResultSet()
@@ -88,13 +163,37 @@ DBResultSet::fetch()
   return false;
  }
  This.currRow=mysql_fetch_row(This.rsetPtr);
- return (This.currRow!=NULL);
+ This.columnCount=(size_t)mysql_num_fields(This.rsetPtr);
+ return(This.currRow!=NULL);
 }
 
 void
 DBResultSet::get(size_t pos,String& value)
 {
+ if (pos>=This.columnCount)
+  throw DBException("Column Index out of bounds");
  const char* cPtr=This.currRow[pos];
- size_t cLen=strlen(cPtr);
- value.assign(cPtr,cLen);
+ if (cPtr!=NULL)
+ {
+  size_t cLen=strlen(cPtr);
+  value.assign(cPtr,cLen);
+ }
+ else
+  value.clear();
+}
+ 
+void
+DBResultSet::get(size_t pos,Serial& value)
+{
+ if (pos>=This.columnCount)
+  throw DBException("Column Index out of bounds");
+ const char* cPtr=This.currRow[pos];
+ if (cPtr!=NULL)
+ {
+  size_t cLen=strlen(cPtr);
+  String text(cPtr,cLen);
+  value.fromString(text);
+ }
+ else
+  value.setNull();
 }
