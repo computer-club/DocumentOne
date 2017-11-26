@@ -3,9 +3,52 @@
 #include "Sys.h"
 #include "Dbms.h"
 #include "QueryProcessor.h"
+#include "SysSocket.h"
+
+void localQueryRequest();
+void queryRequestServer(String port);
 
 int
 main(int argc, char** argv)
+{
+ if (argc==1)
+ {
+  localQueryRequest();
+  exit(0);
+ }
+ else if (argc==2)
+ {
+  queryRequestServer(argv[1]);
+  exit(0);
+ }
+}
+
+void
+queryRequestServer(String port)
+{
+ Socket server;
+ server.listen(port);
+ Socket client;
+ while (server.accept(client))
+ {
+  String query;
+  client.read(query);
+
+  DBConnection connection;
+  connection.connect();
+  QueryProcessor processor;
+  processor.setQueryString(query);
+  processor.process(connection);
+
+  client.write(processor.getResponseString());
+//  printf("%s\n",processor.getResponseString().c_str());
+
+  client.disconnect();
+ }
+}
+
+void
+localQueryRequest()
 {
  QueryProcessor processor;
  processor.setQueryString("\

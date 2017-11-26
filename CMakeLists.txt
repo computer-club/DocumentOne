@@ -14,7 +14,8 @@ execute_process(COMMAND mysql_config --libs
 set(SOURCES cpp/OpenForum.cpp cpp/QueryProcessor.cpp
     cpp/PostInquiryRequest.cpp cpp/PostData.cpp cpp/UserPostRequest.cpp
     cpp/Dbms.cpp cpp/Column.cpp cpp/User.cpp cpp/Post.cpp
-    cpp/SysException.cpp cpp/UserData.cpp cpp/UserControlRequest.cpp)
+    cpp/SysException.cpp cpp/UserData.cpp cpp/UserControlRequest.cpp
+    cpp/SysSocket.cpp)
 add_executable(OpenForum ${SOURCES})
 find_package(LibXml2)
 if(LIBXML2_FOUND)

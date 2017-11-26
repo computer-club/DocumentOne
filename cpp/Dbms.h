@@ -10,7 +10,7 @@
 #include "SysException.h"
 #include "Serial.h"
 
-#define DBLOGMODE 1
+#define DBLOGMODE 0
 
 class DBStatement;
 class DBResultSet;
