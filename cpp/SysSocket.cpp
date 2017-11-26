@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <signal.h>
 #include <errno.h>
+#include <unistd.h>
 #include "Sys.h"
 #include "SysSocket.h"
 
@@ -14,6 +15,46 @@ Socket::~Socket()
 {
  if (This.socketFileDescriptor!=-1)
   shutdown(This.socketFileDescriptor,SHUT_RDWR);
+}
+
+bool
+Socket::listen(const String& port)
+{
+ This.socketFileDescriptor=socket(AF_INET,SOCK_STREAM,0);
+ if (This.socketFileDescriptor<0)
+  throw SysException("SysSocket::listen failed to create socket");
+
+ struct sockaddr_in serverAddress;
+ memset(&serverAddress,0,sizeof(struct sockaddr_in));
+
+ serverAddress.sin_family=AF_INET;
+ serverAddress.sin_addr.s_addr=INADDR_ANY;
+ serverAddress.sin_port=htons(std::atoi(port.c_str()));
+
+ if (bind(This.socketFileDescriptor,
+      (struct sockaddr*)&serverAddress,
+      sizeof(serverAddress))<0)
+  throw SysException("SysSocket::listen failed to bind socket");
+
+ int backlog=5;
+ ::listen(This.socketFileDescriptor,backlog);
+
+ return true;
+}
+
+bool
+Socket::accept(Socket& clientSocket)
+{
+ struct sockaddr_in clientAddress;
+ int clientAddressSize=sizeof(clientAddress);
+
+ clientSocket.socketFileDescriptor=
+  ::accept(This.socketFileDescriptor,
+   (struct sockaddr*)&clientAddress,
+   (socklen_t*)&clientAddressSize);
+
+ if (clientSocket.socketFileDescriptor<0)
+  throw SysException("SysSocket::accept failed to create socket");
 }
 
 bool
@@ -71,6 +112,13 @@ Socket::connect(String& host, String& port)
   This.socketFileDescriptor=socketFileDescriptor;
 
  return(success);
+}
+
+bool
+Socket::disconnect()
+{
+ if (This.socketFileDescriptor!=-1)
+  ::close(This.socketFileDescriptor);
 }
 
 bool

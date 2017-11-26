@@ -18,6 +18,9 @@ public:
  {This.socketFileDescriptor=-1; }
  ~Socket();
 
+ bool listen(const String& port);
+ bool accept(Socket& clientSocket);
+
  bool connect(String& host, String& port);
  bool disconnect();
 
