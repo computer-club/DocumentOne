@@ -2,33 +2,73 @@
 
 #include "Sys.h"
 #include "Dbms.h"
-#include "PostData.h"
+#include "QueryProcessor.h"
 
 int
 main(int argc, char** argv)
 {
+ QueryProcessor processor;
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <UserPost>\
+     <LoginToken></LoginToken>\
+     <TopicSerial>1</TopicSerial>\
+     <Subject>TESTING</Subject>\
+     <Content>Working Password!</Content>\
+    </UserPost>\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <UserLoginVerify>\
+     <Username></Username>\
+     <Password></Password>\
+    </UserLoginVerify>\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <TopicInquiry>\
+     <Serial>1</Serial>\
+    </TopicInquiry>\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <UserLogout>\
+     <LoginToken></LoginToken>\
+    </UserLogout>\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <UserRegister>\
+     <Username></Username>\
+     <Password></Password>\
+    </UserRegister>\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <ForumInquiry />\
+   </Request>\
+  </OpenForumQuery>");
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <BoardInquiry>\
+     <Serial>1</Serial>\
+    </BoardInquiry>\
+   </Request>\
+  </OpenForumQuery>");
  DBConnection connection;
  connection.connect();
- TopicData topicData;
- topicData.retrieve(connection,1);
- printf("Board:   %s\nUser:    %s\nSubject: %s\n",
-  topicData.getBoardSerial().toString().c_str(),
-  topicData.getUserSerial().toString().c_str(),
-  topicData.getSubject().c_str());
- TopicData::SerialList::const_iterator next(
-  topicData.beginPostSerialList());
- TopicData::SerialList::const_iterator last(
-  topicData.endPostSerialList());
- while (next!=last)
- {
-  printf("Retrieved Post:\n");
-  PostData postData;
-  postData.retrieve(connection,*next);
-  printf("Topic:   %s\nUser:    %s\nSubject: %s\nContent: %s\n",
-   postData.getTopicSerial().toString().c_str(),
-   postData.getUserSerial().toString().c_str(),
-   postData.getSubject().c_str(),
-   postData.getContent().c_str());
-  ++next;
- }
+ processor.process(connection);
+ printf("%s\n",processor.getResponseString().c_str());
 }
