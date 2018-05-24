@@ -29,4 +29,28 @@ public:
   xmlDocPtr document);
 };
 
+class UserTopicPostRequest: public QueryProcessorRequestBase
+{
+// private data
+private:
+ DBConnection* connectionPtr;
+ String loginToken;
+ Serial boardSerial;
+ String subject;
+ String content;
+
+ Serial topicSerial;
+ Serial postSerial;
+
+// public functions
+public:
+ UserTopicPostRequest(
+  DBConnection& connection,
+  QueryRequest& request);
+
+ virtual void perform();
+ virtual void generateXML(
+  xmlDocPtr document);
+};
+
 #endif

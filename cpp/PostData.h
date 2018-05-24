@@ -82,14 +82,16 @@ public:
  const bool isRetrieved() const
  { return(This.retrieved); }
 
- const Serial getSerial() const
+ const Serial& getSerial() const
  { return(This.serial); }
- const Serial getBoardSerial() const
+ const Serial& getBoardSerial() const
  { return(This.boardSerial); }
- const Serial getUserSerial() const
+ const Serial& getUserSerial() const
  { return(This.userSerial); }
- const String getSubject() const
+ const String& getSubject() const
  { return(This.subject); }
+ const size_t getPostCount() const
+ { return(This.postSerialList.size()); }
 
  const SerialList::const_iterator beginPostSerialList() const
  { return(This.postSerialList.begin()); }

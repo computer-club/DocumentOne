@@ -5,6 +5,7 @@
 
 #include "Sys.h"
 #include "User.h"
+#include "Permission.h"
 
 class DBConnection;
 
@@ -16,6 +17,7 @@ private:
  BoolFalse isRetrieved;
  Serial serial;
  String username;
+ Serial roleSerial;
  String token;
  String tokenExpirationDate;
  String tokenExpirationTime;
@@ -53,12 +55,21 @@ public:
  void setUsername(String& value)
  { This.username=value; }
 
+ const Serial& getRoleSerial() const
+ { return(This.roleSerial); }
+ void setRoleSerial(const Serial& value)
+ { This.roleSerial=value; }
+
  const String& getLoginToken() const
  { return(This.token); }
  const String& getTokenExpirationDate() const
  { return(This.tokenExpirationDate); }
  const String& getTokenExpirationTime() const
  { return(This.tokenExpirationTime); }
+
+ bool checkRestrictedAccess(
+  DBConnection& connection,
+  Permission::Category category);
 
 // public static functions
 public:

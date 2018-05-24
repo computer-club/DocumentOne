@@ -106,10 +106,20 @@ localQueryRequest()
   <OpenForumQuery>\
    <Request>\
     <BoardInquiry>\
-     <Serial>1</Serial>\
+     <Serial>3</Serial>\
     </BoardInquiry>\
    </Request>\
   </OpenForumQuery>");
+/*
+ processor.setQueryString("\
+  <OpenForumQuery>\
+   <Request>\
+    <UserInquiry>\
+     <Serial>1</Serial>\
+    </UserInquiry>\
+   </Request>\
+  </OpenForumQuery>");
+*/
  DBConnection connection;
  connection.connect();
  processor.process(connection);

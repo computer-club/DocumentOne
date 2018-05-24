@@ -18,6 +18,7 @@ class DBResultSet;
 class DBConnection
 {
  friend class DBStatement;
+ friend class DBResultSet;
 
 // public types
 public:
@@ -31,6 +32,8 @@ public:
 
  class RawConnection
  {
+  friend class DBConnection;
+ 
  // private data
  private:
   MYSQL* value;
@@ -42,11 +45,16 @@ public:
   RawConnection(MYSQL* ptr)
   { This.value=ptr; }
   ~RawConnection()
-  { mysql_close(This.value); } 
+  { This.close(); }
 
-  bool setValue(MYSQL* ptr);
   MYSQL* getValue()
   { return(This.value); }
+
+ // private functions
+ private:
+  void close();
+
+  bool setValue(MYSQL* ptr);
 
   MYSQL& operator*()
   { return(*This.value); }
@@ -95,6 +103,7 @@ public:
  { return(This.databaseName); }
 
  void connect();
+ void close();
  void startTransaction();
  void commit();
  void rollback();
@@ -138,6 +147,8 @@ public:
  void addRightParenthesis()
  { This.stmt.append(")"); }
 
+ void addAnd()
+ { This.stmt.append(" AND "); }
  void addValues()
  { This.stmt.append(" VALUES "); }
  void addSet()
@@ -214,7 +225,7 @@ public:
  void get(size_t post,Serial& value);
 
 // private functions
- void storeResult(MYSQL* connection);
+ void storeResult(DBConnection* connection);
  void storeResult(MYSQL_STMT* statement);
 };
 

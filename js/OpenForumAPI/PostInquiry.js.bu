@@ -1,0 +1,35 @@
+var net=require('net');
+var parseXML=require('xml2js').parseString;
+
+var getBoardListing=function(callback) {
+ const client=net.createConnection({ port: 8081 },()=>{
+  client.write("<OpenForumQuery><Request><ForumInquiry /></Request></OpenForumQuery>\r\n");
+ });
+ client.on('data',(data)=>{
+  parseXML(data.toString(),(err,resp) => {
+   let element=resp;
+   if (!element.OpenForumQuery)
+    throw "Error!";
+   element=element.OpenForumQuery;
+   if (!element.ForumInquiry)
+    throw "Error!";
+   element=element.ForumInquiry;
+   if (!Array.isArray(element))
+    throw "Error!";
+   element=element[0];
+   if (!element.Boards)
+    throw "Error!";
+   element=element.Boards;
+   callback(element);
+  });
+ });
+}
+
+getBoardListing((elem)=>{
+ elem=elem[0].Board[0].Description;
+ console.dir(elem);
+});
+
+module.exports = {
+ getBoardListing: getBoardListing
+};

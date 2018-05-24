@@ -15,19 +15,28 @@ UserData::retrieve(
  DBStatement stmt(connection);
  DBResultSet rset(stmt);
  stmt.setSelect();
- stmt.addIdentifier(UserTable::getSerialColumnName());
+ stmt.addIdentifier(
+  UserTable::getSerialColumnName());
  stmt.addComma();
- stmt.addIdentifier(UserTable::getUsernameColumnName());
+ stmt.addIdentifier(
+  UserTable::getUsernameColumnName());
  stmt.addComma();
- stmt.addIdentifier(UserTable::getTokenColumnName());
+ stmt.addIdentifier(
+  UserTable::getRoleSerialColumnName());
  stmt.addComma();
- stmt.addIdentifier(UserTable::getTokenExpirationDateColumnName());
+ stmt.addIdentifier(
+  UserTable::getTokenColumnName());
  stmt.addComma();
- stmt.addIdentifier(UserTable::getTokenExpirationTimeColumnName());
+ stmt.addIdentifier(
+  UserTable::getTokenExpirationDateColumnName());
+ stmt.addComma();
+ stmt.addIdentifier(
+  UserTable::getTokenExpirationTimeColumnName());
  stmt.addFrom();
  stmt.addIdentifier(UserTable::getName());
  stmt.addWhere();
- stmt.addIdentifier(UserTable::getSerialColumnName());
+ stmt.addIdentifier(
+  UserTable::getSerialColumnName());
  stmt.addIsEqualTo();
  stmt.addLiteral(serial);
  stmt.executeQuery(rset);
@@ -37,6 +46,7 @@ UserData::retrieve(
   size_t pos=0;
   rset.get(pos++,This.serial);
   rset.get(pos++,This.username);
+  rset.get(pos++,This.roleSerial);
   rset.get(pos++,This.token);
   rset.get(pos++,This.tokenExpirationDate);
   rset.get(pos++,This.tokenExpirationTime);
@@ -333,4 +343,84 @@ UserData::getUserSerialByToken(
    result=serial;
  }
  return(result);
+}
+
+bool
+UserData::checkRestrictedAccess(
+ DBConnection& connection,
+ Permission::Category category)
+{
+ if (!This.isRetrieved)
+  throw SysException("UserData not retrieved");
+ bool allowed=false;
+ bool found=false;
+ DBStatement stmt(connection);
+ DBResultSet rset(stmt);
+
+ stmt.setSelect();
+ stmt.addIdentifier(
+  PermissionOverrideTable::getTypeColumnName());
+ stmt.addFrom();
+ stmt.addIdentifier(PermissionOverrideTable::getName());
+ stmt.addWhere();
+ stmt.addIdentifier(
+  PermissionOverrideTable::getParentSerialColumnName());
+ stmt.addIsEqualTo();
+ stmt.addLiteral(This.serial);
+ stmt.addAnd();
+ stmt.addIdentifier(
+  PermissionOverrideTable::getCategoryColumnName());
+ stmt.addIsEqualTo();
+ stmt.addLiteral(category.toString());
+ stmt.executeQuery(rset);
+ if (rset.fetch())
+ {
+  found=true;
+  String typeString;
+  rset.get(0,typeString);
+  Permission::Type type;
+  type.fromString(typeString);
+  if (type==Permission::Type::Allowed ||
+      type==Permission::Type::AlwaysAllowed)
+   allowed=true;
+ }
+
+ if (!found)
+ {
+  stmt.setSelect();
+  stmt.addIdentifier(
+   PermissionTable::getTypeColumnName());
+  stmt.addFrom();
+  stmt.addIdentifier(PermissionTable::getName());
+  stmt.addWhere();
+  stmt.addIdentifier(
+   PermissionTable::getParentSerialColumnName());
+  stmt.addIsEqualTo();
+  stmt.addLiteral(This.roleSerial);
+  stmt.addAnd();
+  stmt.addIdentifier(
+   PermissionTable::getCategoryColumnName());
+  stmt.addIsEqualTo();
+  stmt.addLiteral(category.toString());
+  stmt.executeQuery(rset);
+  if (rset.fetch())
+  {
+   found=true;
+   String typeString;
+   rset.get(0,typeString);
+   Permission::Type type;
+   type.fromString(typeString);
+   if (type==Permission::Type::Allowed ||
+       type==Permission::Type::AlwaysAllowed)
+    allowed=true;
+  }
+ }
+ if (!found)
+ {
+  Permission::Type type(category.getDefault());
+  if (type==Permission::Type::Allowed ||
+      type==Permission::Type::AlwaysAllowed)
+   allowed=true;
+ }
+ return(allowed);
 }

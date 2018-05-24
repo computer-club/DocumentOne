@@ -32,9 +32,9 @@ public:
  void addColumn(const DBColumn* column)
  { columnList.emplace_back(AutoPtr<const DBColumn>(column)); }
 
- DBColumnList::iterator getColumnListBegin()
+ DBColumnList::const_iterator getColumnListBegin() const
  { return(This.columnList.begin()); }
- DBColumnList::iterator getColumnListEnd()
+ DBColumnList::const_iterator getColumnListEnd() const
  { return(This.columnList.end()); }
 };
 

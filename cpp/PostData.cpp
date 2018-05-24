@@ -3,6 +3,7 @@
 #include "Sys.h"
 #include "PostData.h"
 #include "Dbms.h"
+#include "Permission.h"
 
 BoardData::BoardData(const BoardData& right)
 {
@@ -60,7 +61,7 @@ BoardData::retrieveTopics(DBConnection& connection)
  stmt.addWhere();
  stmt.addIdentifier(TopicTable::getParentSerialColumnName());
  stmt.addIsEqualTo();
- stmt.addLiteral(serial);
+ stmt.addLiteral(This.serial);
  stmt.executeQuery(rset);
  while (rset.fetch())
  {

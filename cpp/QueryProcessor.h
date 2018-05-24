@@ -66,10 +66,13 @@ public:
   BoardInquiry,
   TopicInquiry,
   PostInquiry,
+  UserInquiry,
   UserLoginVerify,
   UserRegister,
   UserLogout,
-  UserPost
+  UserPermission,
+  UserPost,
+  UserTopicPost
  };
 
  class Element

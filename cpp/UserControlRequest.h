@@ -13,6 +13,7 @@ class UserLoginRequest: public QueryProcessorRequestBase
 private:
  DBConnection* connectionPtr;
  UserData userData;
+ BoolFalse success;
 
 // public functions
 public:
@@ -54,6 +55,28 @@ private:
 // public functions
 public:
  UserLogoutRequest(
+  DBConnection& connection,
+  QueryRequest& request);
+
+ virtual void perform();
+ virtual void generateXML(
+  xmlDocPtr document);
+};
+
+class UserPermissionRequest: public QueryProcessorRequestBase
+{
+// private data
+private:
+ DBConnection* connectionPtr;
+ UserData userData;
+ String token;
+ String permission;
+
+ bool accessAllowed;
+
+// public functions
+public:
+ UserPermissionRequest(
   DBConnection& connection,
   QueryRequest& request);
 

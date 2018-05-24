@@ -4,6 +4,7 @@
 #include "Sys.h"
 #include "Dbms.h"
 #include "User.h"
+#include "Permission.h"
 
 const String databaseName("CORE");
 
@@ -64,7 +65,7 @@ String getColumnDefinitionString(
 }
 
 void
-addTable(DBTable table,DBConnection& connection)
+addTable(const DBTable& table,DBConnection& connection,bool createColumns)
 {
  String tableName(table.getTableName());
  bool tableExists;
@@ -91,9 +92,11 @@ addTable(DBTable table,DBConnection& connection)
   buildTableString.append(tableName);
   buildTableString.append(" (");
  }
+ else if (!createColumns)
+  return;
  bool first=true;
- DBTable::DBColumnList::iterator next=table.getColumnListBegin();
- DBTable::DBColumnList::iterator end=table.getColumnListEnd();
+ DBTable::DBColumnList::const_iterator next=table.getColumnListBegin();
+ DBTable::DBColumnList::const_iterator end=table.getColumnListEnd();
  while (next!=end) {
   const DBColumn& column=**next;
   String columnName=column.getColumnName();
@@ -144,7 +147,7 @@ addTable(DBTable table,DBConnection& connection)
        serialColumn.getForeignKeyReferenceTableName());
       String foreignKeyReferenceColumnName(
        serialColumn.getForeignKeyReferenceColumnName());
-      sqlStatement.assign("ALTER TABLE");
+      sqlStatement.assign("ALTER TABLE ");
       sqlStatement.append(databaseName);
       sqlStatement.append(".");
       sqlStatement.append(tableName);
@@ -203,6 +206,41 @@ main()
   stmt.setSQL(statement);
   stmt.executeQuery(rset);
  }
- addTable(UserTable(),connection);
+
+ std::list<AutoPtr<DBTable>> tableList;
+ tableList.emplace_back(new UserTable());
+ tableList.emplace_back(new RoleTable());
+ tableList.emplace_back(new PermissionTable());
+ tableList.emplace_back(new PermissionOverrideTable());
+
+ for (size_t pass=0;pass<2;++pass)
+ {
+  if (pass==0)
+   printf("Creating tables...\n");
+  else if (pass==1)
+   printf("Modifying tables...\n");
+
+  bool createColumns=(pass>0);
+  std::list<AutoPtr<DBTable>>::const_iterator next=tableList.begin();
+  std::list<AutoPtr<DBTable>>::const_iterator last=tableList.end();
+
+  while (next!=last)
+  {
+   bool success=false;
+   connection.startTransaction();
+   try {
+    const DBTable& table=**next;
+    addTable(table,connection,createColumns);
+    success=true;
+   } catch (SysException& excp) {
+    printf("ERROR: %s\n",excp.what());
+   }
+   if (success)
+    connection.commit();
+   else
+    connection.rollback();
+   ++next;
+  }
+ }
  return 0;
 }

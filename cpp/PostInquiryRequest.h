@@ -7,6 +7,7 @@
 #include "QueryProcessor.h"
 #include "Serial.h"
 #include "PostData.h"
+#include "UserData.h"
 
 class ForumInquiryRequest: public QueryProcessorRequestBase
 {
@@ -84,6 +85,25 @@ private:
 // public functions
 public:
  PostInquiryRequest(
+  DBConnection& connection,
+  QueryRequest& request);
+
+ virtual void perform();
+ virtual void generateXML(
+  xmlDocPtr document);
+};
+
+class UserInquiryRequest: public QueryProcessorRequestBase
+{
+// private data
+private:
+ DBConnection* connectionPtr;
+ Serial userSerial;
+ UserData userData;
+
+// public functions
+public:
+ UserInquiryRequest(
   DBConnection& connection,
   QueryRequest& request);
 

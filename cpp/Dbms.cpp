@@ -8,6 +8,18 @@
 #include "Dbms.h"
 #include "SysException.h"
 
+void
+DBConnection::RawConnection::close()
+{
+ if (This.value!=NULL) {
+  mysql_close(This.value);
+  This.value=NULL;
+ } else {
+  String exceptionText("Connection is not open");
+  throw DBException(exceptionText);
+ }
+}
+
 DBConnection::DBConnection()
 {
  This.host="localhost";
@@ -18,6 +30,11 @@ DBConnection::DBConnection()
 void
 DBConnection::connect()
 {
+ if (This.connectionPtr.getValue()!=NULL)
+ {
+  String exceptionText("Connection is open");
+  throw DBException(exceptionText);
+ }
  MYSQL* mysqlRawPtr=mysql_init(NULL);
  if (mysql_real_connect(mysqlRawPtr,This.host.c_str(),
       This.username.c_str(),This.password.c_str(),
@@ -42,12 +59,18 @@ DBConnection::connect()
 }
 
 void
+DBConnection::close()
+{
+ This.connectionPtr.close();
+}
+
+void
 DBConnection::startTransaction()
 {
  MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
  if (mysql_query(mysqlRawPtr,"START TRANSACTION")) {
   String mysqlError(mysql_error(mysqlRawPtr));
-  mysql_close(mysqlRawPtr);
+  This.connectionPtr.close();
   throw DBException(mysqlError);
  }
 }
@@ -58,7 +81,7 @@ DBConnection::commit()
  MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
  if (mysql_query(mysqlRawPtr,"COMMIT")) {
   String mysqlError(mysql_error(mysqlRawPtr));
-  mysql_close(mysqlRawPtr);
+  This.connectionPtr.close();
   throw DBException(mysqlError);
  }
 }
@@ -69,7 +92,7 @@ DBConnection::rollback()
  MYSQL* mysqlRawPtr=This.connectionPtr.getValue();
  if (mysql_query(mysqlRawPtr,"ROLLBACK")) {
   String mysqlError(mysql_error(mysqlRawPtr));
-  mysql_close(mysqlRawPtr);
+  This.connectionPtr.close();
   throw DBException(mysqlError);
  }
 }
@@ -125,10 +148,9 @@ DBStatement::executeQuery(DBResultSet& rset)
  if (mysql_query(connection,This.getSQL().c_str()))
  {
   String mysqlError(mysql_error(connection));
-  mysql_close(connection);
   throw DBException(mysqlError);
  }
- rset.storeResult(connection); 
+ rset.storeResult(This.connection); 
 }
 
 DBResultSet::DBResultSet(DBStatement& stmt)
@@ -144,13 +166,13 @@ DBResultSet::~DBResultSet()
 }
 
 void
-DBResultSet::storeResult(MYSQL* connection)
+DBResultSet::storeResult(DBConnection* connection)
 {
- This.rsetPtr=mysql_store_result(connection);
+ This.rsetPtr=mysql_store_result(connection->connectionPtr.getValue());
  if (This.rsetPtr==NULL) {
-  String mysqlError(mysql_error(connection));
+  String mysqlError(mysql_error(connection->connectionPtr.getValue()));
   if (mysqlError.length()>0) {
-   mysql_close(connection);
+   connection->close();
    throw DBException(mysqlError);
   }
  }

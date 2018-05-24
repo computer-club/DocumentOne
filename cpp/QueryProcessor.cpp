@@ -197,10 +197,24 @@ QueryRequest::perform(DBConnection& connection)
   This.processorRequest.reset(requestPtr);
   requestPtr->perform();
  }
+ else if (This.type==RequestType::UserInquiry)
+ {
+  UserInquiryRequest* requestPtr=
+   new UserInquiryRequest(connection,This);
+  This.processorRequest.reset(requestPtr);
+  requestPtr->perform();
+ }
  else if (This.type==RequestType::UserPost)
  {
   UserPostRequest* requestPtr=
    new UserPostRequest(connection,This);
+  This.processorRequest.reset(requestPtr);
+  requestPtr->perform();
+ }
+ else if (This.type==RequestType::UserTopicPost)
+ {
+  UserTopicPostRequest* requestPtr=
+   new UserTopicPostRequest(connection,This);
   This.processorRequest.reset(requestPtr);
   requestPtr->perform();
  }
@@ -222,6 +236,13 @@ QueryRequest::perform(DBConnection& connection)
  {
   UserLogoutRequest* requestPtr=
    new UserLogoutRequest(connection,This);
+  This.processorRequest.reset(requestPtr);
+  requestPtr->perform();
+ }
+ else if (This.type==RequestType::UserPermission)
+ {
+  UserPermissionRequest* requestPtr=
+   new UserPermissionRequest(connection,This);
   This.processorRequest.reset(requestPtr);
   requestPtr->perform();
  }
@@ -256,14 +277,20 @@ QueryRequest::requestTypeFromString(String& value) const
   result=RequestType::TopicInquiry;
  else if (value=="PostInquiry")
   result=RequestType::PostInquiry;
+ else if (value=="UserInquiry")
+  result=RequestType::UserInquiry;
  else if (value=="UserLoginVerify")
   result=RequestType::UserLoginVerify;
  else if (value=="UserRegister")
   result=RequestType::UserRegister;
  else if (value=="UserLogout")
   result=RequestType::UserLogout;
+ else if (value=="UserPermission")
+  result=RequestType::UserPermission;
  else if (value=="UserPost")
   result=RequestType::UserPost;
+ else if (value=="UserTopicPost")
+  result=RequestType::UserTopicPost;
  else
  {
   String text("Invalid option string '");

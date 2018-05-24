@@ -152,7 +152,17 @@ BoardInquiryRequest::generateXML(xmlDocPtr document)
   topicData.retrieve(connection,serial);
   String serialText(serial.toString());
   String userSerial(topicData.getUserSerial().toString());
+  UserData userData;
+  userData.retrieve(connection,userSerial);
+  String username(userData.getUsername());
   String subject(topicData.getSubject());
+  String postCountString;
+  {
+   size_t postCount(topicData.getPostCount());
+   char postCountBuffer[25];
+   size_t len=snprintf(postCountBuffer,25,"%ld",postCount);
+   postCountString.assign(postCountBuffer,len);
+  }
 
   xmlNode* topicElement=xmlNewChild(topicsElement,NULL,
    BAD_CAST "Topic",NULL);
@@ -164,8 +174,14 @@ BoardInquiryRequest::generateXML(xmlDocPtr document)
    BAD_CAST "UserSerial",
    BAD_CAST userSerial.c_str());
   xmlNewChild(topicElement,NULL,
+   BAD_CAST "Username",
+   BAD_CAST username.c_str());
+  xmlNewChild(topicElement,NULL,
    BAD_CAST "Subject",
    BAD_CAST subject.c_str());
+  xmlNewChild(topicElement,NULL,
+   BAD_CAST "PostCount",
+   BAD_CAST postCountString.c_str());
   ++next;
  }
 }
@@ -248,6 +264,9 @@ TopicInquiryRequest::generateXML(xmlDocPtr document)
   postData.retrieve(connection,serial);
   String serialText(serial.toString());
   String userSerial(postData.getUserSerial().toString());
+  UserData userData;
+  userData.retrieve(connection,userSerial);
+  String username(userData.getUsername());
   String subject(postData.getSubject());
   String content(postData.getContent());
 
@@ -260,6 +279,9 @@ TopicInquiryRequest::generateXML(xmlDocPtr document)
   xmlNewChild(postElement,NULL,
    BAD_CAST "UserSerial",
    BAD_CAST userSerial.c_str());
+  xmlNewChild(postElement,NULL,
+   BAD_CAST "Username",
+   BAD_CAST username.c_str());
   xmlNewChild(postElement,NULL,
    BAD_CAST "Subject",
    BAD_CAST subject.c_str());
@@ -335,4 +357,59 @@ PostInquiryRequest::generateXML(xmlDocPtr document)
  xmlNewChild(postElement,NULL,
   BAD_CAST "Content",
   BAD_CAST content.c_str());
+}
+
+UserInquiryRequest::UserInquiryRequest(
+ DBConnection& connection,QueryRequest& request)
+{
+ This.connectionPtr=&connection;
+ QueryRequest::ElementList::const_iterator next(
+  request.elementListBegin());
+ QueryRequest::ElementList::const_iterator last(
+  request.elementListEnd());
+ while (next!=last)
+ {
+  String elementName(next->getName());
+  String elementValue(next->getValue());
+  if (elementName!="Serial")
+  {
+   String text("Invalid request element '");
+   text.append(elementName);
+   text.append("'");
+   throw SysException(text);
+  }
+  else
+   This.userSerial.fromString(elementValue);
+  ++next;
+ }
+ if (This.userSerial.isNull())
+  throw SysException("UserInquiry: Serial not provided");
+}
+
+void
+UserInquiryRequest::perform()
+{
+ DBConnection& connection=*This.connectionPtr;
+ if (This.userSerial.isNull())
+  throw SysException("UserInquiry: Serial not provided");
+ This.userData.retrieve(connection,This.userSerial);
+}
+
+void
+UserInquiryRequest::generateXML(xmlDocPtr document)
+{
+ UserData& userData=This.userData;
+ String userSerial(userData.getSerial().toString());
+ String username(userData.getUsername());
+
+ xmlNode* rootElement=xmlDocGetRootElement(document);
+ xmlNode* userElement=xmlNewChild(rootElement,NULL,
+  BAD_CAST "UserInquiry",NULL);
+
+ xmlNewChild(userElement,NULL,
+  BAD_CAST "Serial",
+  BAD_CAST userSerial.c_str());
+ xmlNewChild(userElement,NULL,
+  BAD_CAST "Username",
+  BAD_CAST username.c_str());
 }
