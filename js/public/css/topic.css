@@ -1,7 +1,0 @@
-tbody > tr {
- height: 150px;
-}
-
-.row-fluid [class*="span"] {
- min-height: 20px;
-}
